@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Index of /</title>
+  <style>
+    body { font-family: monospace; }
+    table { border-collapse: collapse; width: 80%; margin-top: 20px; }
+    th, td { padding: 8px; text-align: left; }
+    tr { border-bottom: 1px solid #ddd; }
+    th { font-weight: bold; background-color: #f2f2f2; }
+    a { text-decoration: none; color: #007bff; }
+    a:hover { text-decoration: underline; }
+    hr { border: 0; border-top: 1px solid #ddd; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Index of /</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Size</th>
+        <th>Type</th>
+      </tr>
+    </thead>
+    <tbody id="file-list">
+      <tr><td colspan="3">Loading file list...</td></tr>
+    </tbody>
+  </table>
+  <hr>
+  <p>Android ZeroStudio Package Repository</p>
+
+  <script>
+    // --- 配置 ---
+    const GITHUB_USERNAME = "android-zeros"; // 替换为你的 GitHub 用户名
+    const GITHUB_REPO = "ZeroStudio-terminal-package"; // 替换为你的仓库名
+    // --- 结束配置 ---
+
+    const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/`;
+
+    async function fetchAndDisplayFiles() {
+      const tbody = document.getElementById('file-list');
+      try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+          throw new Error(`GitHub API request failed: ${response.status}`);
+        }
+        const files = await response.json();
+
+        // 清空 "Loading..." 提示
+        tbody.innerHTML = '';
+
+        // 对文件和文件夹排序，文件夹在前
+        files.sort((a, b) => {
+            if (a.type === b.type) {
+                return a.name.localeCompare(b.name);
+            }
+            return a.type === 'dir' ? -1 : 1;
+        });
+
+        files.forEach(file => {
+          const row = document.createElement('tr');
+          
+          const nameCell = document.createElement('td');
+          const link = document.createElement('a');
+          link.href = file.name;
+          link.textContent = file.type === 'dir' ? `${file.name}/` : file.name;
+          nameCell.appendChild(link);
+          
+          const sizeCell = document.createElement('td');
+          sizeCell.textContent = file.type === 'dir' ? '-' : file.size;
+
+          const typeCell = document.createElement('td');
+          typeCell.textContent = file.type;
+
+          row.appendChild(nameCell);
+          row.appendChild(sizeCell);
+          row.appendChild(typeCell);
+          tbody.appendChild(row);
+        });
+
+      } catch (error) {
+        tbody.innerHTML = `<tr><td colspan="3">Error loading files: ${error.message}</td></tr>`;
+        console.error(error);
+      }
+    }
+
+    // 当页面加载完成后执行函数
+    document.addEventListener('DOMContentLoaded', fetchAndDisplayFiles);
+  </script>
+</body>
+</html>
